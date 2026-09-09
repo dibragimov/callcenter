@@ -2,6 +2,7 @@ from typing import Optional, TypedDict
 
 import httpx
 import openai
+import requests
 from deepgram import DeepgramClient
 from groq import Groq
 
@@ -68,6 +69,7 @@ class UserConfigurationValidator:
             ServiceProviders.SMALLEST.value: self._check_smallest_api_key,
             ServiceProviders.XAI.value: self._check_xai_api_key,
             ServiceProviders.LMNT.value: self._check_lmnt_api_key,
+            ServiceProviders.YANDEX.value: self._check_yandex_api_key,
         }
 
     async def validate(
@@ -236,6 +238,7 @@ class UserConfigurationValidator:
             ServiceProviders.OPENAI.value,
             ServiceProviders.ATLASCLOUD.value,
             ServiceProviders.OPENAI_REALTIME.value,
+            ServiceProviders.YANDEX.value,
         ):
             return validator(provider, api_key, service_config)
         return validator(provider, api_key)
@@ -310,6 +313,50 @@ class UserConfigurationValidator:
                 "Please check that your API key is correct and active. "
                 "You can verify your keys at https://console.deepgram.com/."
             )
+
+    def _check_yandex_api_key(
+        self, model: str, api_key: str, service_config: Optional[ServiceConfig] = None
+    ) -> bool:
+        folder_id = getattr(service_config, "folder_id", None) if service_config else None
+        if not folder_id:
+            raise ValueError(
+                "Yandex requires both an API key and a Folder ID. Please set the "
+                "Folder ID field and try again."
+            )
+
+        try:
+            response = requests.post(
+                "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize",
+                headers={"Authorization": f"Api-Key {api_key}"},
+                data={
+                    "text": "test",
+                    "lang": "ru-RU",
+                    "folderId": folder_id,
+                    "format": "lpcm",
+                    "sampleRateHertz": "16000",
+                },
+                timeout=10,
+            )
+        except requests.RequestException:
+            raise ValueError(
+                "Could not connect to the Yandex SpeechKit API. Please check your "
+                "network connection and try again."
+            )
+
+        if response.status_code == 200:
+            return True
+        if response.status_code in (401, 403):
+            raise ValueError(
+                "Invalid Yandex API key or Folder ID. The request was rejected by "
+                "the Yandex SpeechKit API. Please check that both are correct and "
+                "that the service account has the required SpeechKit role. You can "
+                "verify this at https://console.yandex.cloud."
+            )
+        raise ValueError(
+            f"Yandex SpeechKit API returned an unexpected error (HTTP "
+            f"{response.status_code}) while validating the API key. Please try "
+            "again later."
+        )
 
     def _check_groq_api_key(self, model: str, api_key: str) -> bool:
         client = Groq(api_key=api_key)
