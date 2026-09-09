@@ -1469,6 +1469,29 @@ class LmntTTSConfiguration(BaseTTSConfiguration):
     )
 
 
+YANDEX_LANGUAGES = ["ru-RU", "en-US", "uz-UZ"]
+
+
+@register_tts
+class YandexTTSConfiguration(BaseTTSConfiguration):
+    model_config = YANDEX_PROVIDER_MODEL_CONFIG
+    provider: Literal[ServiceProviders.YANDEX] = ServiceProviders.YANDEX
+    model: str = Field(default="general", description="Yandex SpeechKit synthesis model.")
+    voice: str = Field(
+        default="",
+        description=(
+            "Voice name. Leave blank for Yandex's default voice - required for "
+            "uz-UZ, which has no officially documented named voice."
+        ),
+    )
+    language: str = Field(
+        default="ru-RU",
+        description="Synthesis language code.",
+        json_schema_extra={"examples": YANDEX_LANGUAGES, "allow_custom_input": True},
+    )
+    folder_id: str = Field(description="Yandex Cloud folder ID.")
+
+
 TTSConfig = Annotated[
     Union[
         DeepgramTTSConfiguration,
@@ -1491,29 +1514,6 @@ TTSConfig = Annotated[
     ],
     Field(discriminator="provider"),
 ]
-
-
-YANDEX_LANGUAGES = ["ru-RU", "en-US", "uz-UZ"]
-
-
-@register_tts
-class YandexTTSConfiguration(BaseTTSConfiguration):
-    model_config = YANDEX_PROVIDER_MODEL_CONFIG
-    provider: Literal[ServiceProviders.YANDEX] = ServiceProviders.YANDEX
-    model: str = Field(default="general", description="Yandex SpeechKit synthesis model.")
-    voice: str = Field(
-        default="",
-        description=(
-            "Voice name. Leave blank for Yandex's default voice - required for "
-            "uz-UZ, which has no officially documented named voice."
-        ),
-    )
-    language: str = Field(
-        default="ru-RU",
-        description="Synthesis language code.",
-        json_schema_extra={"examples": YANDEX_LANGUAGES, "allow_custom_input": True},
-    )
-    folder_id: str = Field(description="Yandex Cloud folder ID.")
 
 ###################################################### STT ########################################################################
 
@@ -1912,6 +1912,19 @@ class SmallestAISTTConfiguration(BaseSTTConfiguration):
     )
 
 
+@register_stt
+class YandexSTTConfiguration(BaseSTTConfiguration):
+    model_config = YANDEX_PROVIDER_MODEL_CONFIG
+    provider: Literal[ServiceProviders.YANDEX] = ServiceProviders.YANDEX
+    model: str = Field(default="general", description="Yandex SpeechKit recognition model.")
+    language: str = Field(
+        default="ru-RU",
+        description="Recognition language code.",
+        json_schema_extra={"examples": YANDEX_LANGUAGES, "allow_custom_input": True},
+    )
+    folder_id: str = Field(description="Yandex Cloud folder ID.")
+
+
 STTConfig = Annotated[
     Union[
         DeepgramSTTConfiguration,
@@ -1932,19 +1945,6 @@ STTConfig = Annotated[
     ],
     Field(discriminator="provider"),
 ]
-
-
-@register_stt
-class YandexSTTConfiguration(BaseSTTConfiguration):
-    model_config = YANDEX_PROVIDER_MODEL_CONFIG
-    provider: Literal[ServiceProviders.YANDEX] = ServiceProviders.YANDEX
-    model: str = Field(default="general", description="Yandex SpeechKit recognition model.")
-    language: str = Field(
-        default="ru-RU",
-        description="Recognition language code.",
-        json_schema_extra={"examples": YANDEX_LANGUAGES, "allow_custom_input": True},
-    )
-    folder_id: str = Field(description="Yandex Cloud folder ID.")
 
 
 ###################################################### EMBEDDINGS ########################################################################
