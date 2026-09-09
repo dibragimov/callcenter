@@ -98,6 +98,7 @@ class ServiceProviders(str, Enum):
     SMALLEST = "smallest"
     XAI = "xai"
     LMNT = "lmnt"
+    YANDEX = "yandex"
 
 
 class BaseServiceConfiguration(BaseModel):
@@ -131,6 +132,7 @@ class BaseServiceConfiguration(BaseModel):
         ServiceProviders.SMALLEST,
         ServiceProviders.XAI,
         ServiceProviders.LMNT,
+        ServiceProviders.YANDEX,
     ]
     api_key: str | list[str]
 
@@ -352,6 +354,14 @@ AZURE_REALTIME_PROVIDER_MODEL_CONFIG = provider_model_config(
     "Azure OpenAI Realtime",
     description="Azure OpenAI Realtime API — low-latency speech-to-speech conversations.",
     provider_docs_url="https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/realtime-audio-quickstart",
+)
+YANDEX_PROVIDER_MODEL_CONFIG = provider_model_config(
+    "Yandex",
+    description=(
+        "Yandex SpeechKit streaming speech recognition and synthesis, with "
+        "strong Russian and Uzbek language support."
+    ),
+    provider_docs_url="https://yandex.cloud/en/docs/speechkit/",
 )
 
 OPENAI_MODELS = [
@@ -1481,6 +1491,29 @@ TTSConfig = Annotated[
     Field(discriminator="provider"),
 ]
 
+
+YANDEX_LANGUAGES = ["ru-RU", "en-US", "uz-UZ"]
+
+
+@register_tts
+class YandexTTSConfiguration(BaseTTSConfiguration):
+    model_config = YANDEX_PROVIDER_MODEL_CONFIG
+    provider: Literal[ServiceProviders.YANDEX] = ServiceProviders.YANDEX
+    model: str = Field(default="general", description="Yandex SpeechKit synthesis model.")
+    voice: str = Field(
+        default="",
+        description=(
+            "Voice name. Leave blank for Yandex's default voice - required for "
+            "uz-UZ, which has no officially documented named voice."
+        ),
+    )
+    language: str = Field(
+        default="ru-RU",
+        description="Synthesis language code.",
+        json_schema_extra={"examples": YANDEX_LANGUAGES, "allow_custom_input": True},
+    )
+    folder_id: str = Field(description="Yandex Cloud folder ID.")
+
 ###################################################### STT ########################################################################
 
 
@@ -1897,6 +1930,20 @@ STTConfig = Annotated[
     ],
     Field(discriminator="provider"),
 ]
+
+
+@register_stt
+class YandexSTTConfiguration(BaseSTTConfiguration):
+    model_config = YANDEX_PROVIDER_MODEL_CONFIG
+    provider: Literal[ServiceProviders.YANDEX] = ServiceProviders.YANDEX
+    model: str = Field(default="general", description="Yandex SpeechKit recognition model.")
+    language: str = Field(
+        default="ru-RU",
+        description="Recognition language code.",
+        json_schema_extra={"examples": YANDEX_LANGUAGES, "allow_custom_input": True},
+    )
+    folder_id: str = Field(description="Yandex Cloud folder ID.")
+
 
 ###################################################### EMBEDDINGS ########################################################################
 

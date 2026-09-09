@@ -95,6 +95,8 @@ from pipecat.services.speechmatics.stt import (
     SpeechmaticsSTTSettings,
 )
 from pipecat.services.xai.tts import XAITTSService, XAIWebsocketTTSSettings
+from pipecat.services.yandex.stt import YandexSTTService
+from pipecat.services.yandex.tts import YandexTTSService
 from pipecat.transcriptions.language import Language
 from pipecat.utils.text.xml_function_tag_filter import XMLFunctionTagFilter
 
@@ -544,6 +546,13 @@ def create_stt_service(
             should_interrupt=False,
             sample_rate=audio_config.transport_in_sample_rate,
         )
+    elif user_config.stt.provider == ServiceProviders.YANDEX.value:
+        return YandexSTTService(
+            api_key=user_config.stt.api_key,
+            folder_id=user_config.stt.folder_id,
+            language=user_config.stt.language,
+            sample_rate=audio_config.transport_in_sample_rate,
+        )
     else:
         raise HTTPException(
             status_code=400, detail=f"Invalid STT provider {user_config.stt.provider}"
@@ -909,6 +918,16 @@ def create_tts_service(
                 language=pipecat_language,
                 model=model,
             ),
+            text_filters=[xml_function_tag_filter],
+            skip_aggregator_types=["recording_router", "recording"],
+            silence_time_s=1.0,
+        )
+    elif user_config.tts.provider == ServiceProviders.YANDEX.value:
+        return YandexTTSService(
+            api_key=user_config.tts.api_key,
+            folder_id=user_config.tts.folder_id,
+            language=user_config.tts.language,
+            voice=user_config.tts.voice or None,
             text_filters=[xml_function_tag_filter],
             skip_aggregator_types=["recording_router", "recording"],
             silence_time_s=1.0,
