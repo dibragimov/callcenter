@@ -1487,6 +1487,7 @@ TTSConfig = Annotated[
         SmallestAITTSConfiguration,
         XAITTSConfiguration,
         LmntTTSConfiguration,
+        YandexTTSConfiguration,
     ],
     Field(discriminator="provider"),
 ]
@@ -1927,6 +1928,7 @@ STTConfig = Annotated[
         AzureSpeechSTTConfiguration,
         SmallestAISTTConfiguration,
         ElevenlabsSTTConfiguration,
+        YandexSTTConfiguration,
     ],
     Field(discriminator="provider"),
 ]
