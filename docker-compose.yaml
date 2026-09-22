@@ -254,7 +254,7 @@ services:
       TELEPHONY_WS_TOKEN_ENFORCE: "${TELEPHONY_WS_TOKEN_ENFORCE:-false}"
 
       # Telemetry
-      ENABLE_TELEMETRY: "${ENABLE_TELEMETRY:-true}"
+      ENABLE_TELEMETRY: "${ENABLE_TELEMETRY:-false}"
       POSTHOG_API_KEY: "phc_ItizB1dP6yv7ZYobbcqrpxTdbomDA8hJFSEmAMdYvIr"
       POSTHOG_HOST: "https://us.i.posthog.com"
 
