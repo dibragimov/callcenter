@@ -15,6 +15,7 @@
 services:
   postgres:
     image: pgvector/pgvector:pg17
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       # Sourced from .env. Defaults to "postgres"
@@ -42,6 +43,7 @@ services:
 
   redis:
     image: redis:7
+    restart: unless-stopped
     ports:
       - "6379:6379"
     command: >
@@ -58,6 +60,7 @@ services:
 
   minio:
     image: minio/minio
+    restart: unless-stopped
     container_name: minio
     command: server /data --console-address ":9001"
     environment:
@@ -102,6 +105,7 @@ services:
 
   nginx:
     image: nginx:alpine
+    restart: unless-stopped
     container_name: nginx_https
     profiles: ["remote"]
     depends_on:
@@ -142,6 +146,7 @@ services:
 
   api:
     image: ${REGISTRY:-dograhai}/dograh-api:latest
+    restart: unless-stopped
     environment:
       # Core application config
       ENVIRONMENT: "${ENVIRONMENT:-local}"
@@ -282,6 +287,7 @@ services:
 
   ui:
     image: ${REGISTRY:-dograhai}/dograh-ui:latest
+    restart: unless-stopped
     environment:
       # Bind the Next.js standalone server to all interfaces
       HOSTNAME: "0.0.0.0"
