@@ -260,7 +260,32 @@ class BaseChatLLMConfiguration(BaseLLMConfiguration):
         return self
 
 
-class BaseTTSConfiguration(BaseServiceConfiguration):
+class TextNormalizationSetting(BaseModel):
+    """TTS text normalization; shared by every TTS configuration (see test_tts_text_normalization).
+
+    The UI promotes the first non-secret setting into the slot beside the provider picker, so this
+    rarely-changed field is moved to the end of the schema instead of preceding the provider's own.
+    """
+
+    @classmethod
+    def model_json_schema(cls, *args, **kwargs):
+        schema = super().model_json_schema(*args, **kwargs)
+        properties = schema.get("properties", {})
+        if "text_normalization" in properties:
+            properties["text_normalization"] = properties.pop("text_normalization")
+        return schema
+
+    text_normalization: Literal["off", "uzbek"] = Field(
+        default="off",
+        description=(
+            "Rewrite numbers, dates, times, phone numbers, codes and abbreviations as "
+            "spoken words before synthesis. 'uzbek' applies to Uzbek sentences only "
+            "(Russian and English pass through). Transcripts then show the spoken words."
+        ),
+    )
+
+
+class BaseTTSConfiguration(BaseServiceConfiguration, TextNormalizationSetting):
     model: str
 
 
@@ -1278,7 +1303,7 @@ RealtimeConfig = Annotated[
 
 
 @register_tts(provider=DEEPGRAM_PROVIDER)
-class DeepgramTTSConfiguration(BaseServiceConfiguration):
+class DeepgramTTSConfiguration(BaseServiceConfiguration, TextNormalizationSetting):
     provider: Literal[ServiceProviders.DEEPGRAM] = ServiceProviders.DEEPGRAM
     model: Literal["aura-2", "aura-1", "flux"] = Field(
         default="aura-2",
@@ -1411,7 +1436,7 @@ ELEVENLABS_TTS_MODELS = [
 
 
 @register_tts(provider=ELEVENLABS_PROVIDER)
-class ElevenlabsTTSConfiguration(BaseServiceConfiguration):
+class ElevenlabsTTSConfiguration(BaseServiceConfiguration, TextNormalizationSetting):
     provider: Literal[ServiceProviders.ELEVENLABS] = ServiceProviders.ELEVENLABS
     voice: str = Field(
         default="21m00Tcm4TlvDq8ikWAM",
@@ -1902,7 +1927,7 @@ XAI_TTS_VOICES = ["eve", "ara", "leo", "rex", "sal"]
 
 
 @register_tts(provider=XAI_PROVIDER)
-class XAITTSConfiguration(BaseServiceConfiguration):
+class XAITTSConfiguration(BaseServiceConfiguration, TextNormalizationSetting):
     provider: Literal[ServiceProviders.XAI] = ServiceProviders.XAI
     voice: str = Field(
         default="eve",
